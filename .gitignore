@@ -1,0 +1,7 @@
+﻿build
+.vscode
+.DS_Store
+glad
+glfw
+glm
+notes.md
