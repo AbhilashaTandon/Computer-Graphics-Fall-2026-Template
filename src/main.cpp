@@ -7,6 +7,7 @@
 #include "../include/texture.h"
 #include "../include/vertex_array.h"
 #include "../include/vertex_buffer.h"
+#include <GLFW/glfw3.h>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_float4x4.hpp>
 #include <glm/glm.hpp>
@@ -16,19 +17,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 const std::string WINDOW_TITLE = "OpenGL";
 
-int main() {
-        GLInit();
-        GLFWwindow *window = MakeWindow(SCR_WIDTH, SCR_HEIGHT, WINDOW_TITLE);
-
-        GLenum err = glewInit();
-        if (GLEW_OK != err) {
-                /* Problem: glewInit failed, something is seriously wrong. */
-                fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-        }
-
-        GLCheckError(glEnable(GL_BLEND));
-        GLCheckError(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-        GLCheckError(glBlendEquation(GL_FUNC_ADD));
+void placeholder(GLFWwindow *window) {
 
         Solid sphere = Solid(glm::vec3(0., 0., 0.f));
         sphere.MakeSphere(.45, 10, 10);
@@ -59,9 +48,9 @@ int main() {
         };
         unsigned int secondTriangleIndices[] = {0, 1, 2};
 
-        Shader secondShader = Shader("../res/shaders/shader_2.vert",
-                                     "../res/shaders/shader_2.frag");
-        Shader firstShader =
+        // Shader secondShader = Shader("../res/shaders/shader_2.vert",
+        //                              "../res/shaders/shader_2.frag");
+        Shader shader_program =
             Shader("../res/shaders/shader.vert", "../res/shaders/shader.frag");
 
         VertexArray vao2; // note that we bind to a different VAO now
@@ -99,15 +88,13 @@ int main() {
 
         Texture texture("../res/textures/wood.png");
         texture.Bind();
-        firstShader.setInt("u_Texture", 0);
-        secondShader.setInt("u_Texture", 0);
+        shader_program.setInt("u_Texture", 0);
 
         glm::mat4 proj =
             glm::ortho<float>(-float(1.), float(1.), -float(1.), float(1.),
                               -float(10.f), float(10.f));
 
-        firstShader.setMat4("proj", proj);
-        secondShader.setMat4("proj", proj);
+        shader_program.setMat4("proj", proj);
 
         float last_frame = -0.03f;
 
@@ -123,18 +110,90 @@ int main() {
                 UpdateFramerate(time_val, last_frame, moving_framerate_average,
                                 framerate_smoothing, window);
 
-                firstShader.setFloat("time", time_val);
-                secondShader.setFloat("time", time_val);
+                shader_program.setFloat("time", time_val);
 
                 renderer.Clear(glm::vec4(0.4, 0.7, 0.9, 1.0)); // sky blue
 
-                renderer.Draw(vao1, firstShader, sphereIB);
-                renderer.Draw(vao2, secondShader, secondTriangleIB);
+                renderer.Draw(vao1, shader_program, sphereIB);
+                renderer.Draw(vao2, shader_program, secondTriangleIB);
 
                 // end of rendering
                 glfwSwapBuffers(window);
                 glfwPollEvents();
         }
+}
+
+void step1(GLFWwindow *window) {
+
+        float triangle[] = {
+            0.0f,  -0.5f, 0.0f, // left
+            0.9f,  -0.5f, 0.0f, // right
+            0.45f, 0.5f,  0.0f, // top
+        };
+        unsigned int indices[] = {0, 1, 2};
+
+        Shader shader_program =
+            Shader("../res/shaders/step1.vert", "../res/shaders/step1.frag");
+
+        VertexArray vao;
+        VertexBuffer vbo(triangle, 15 * sizeof(float));
+
+        VertexBufferLayout layout;
+
+        layout.AddAttrib("position", 3, GL_FLOAT, false);
+        vao.AddBuffer(vbo, layout);
+
+        IndexBuffer secondTriangleIB(indices, 3);
+
+        Renderer renderer;
+
+        glm::mat4 proj =
+            glm::ortho<float>(-float(1.), float(1.), -float(1.), float(1.),
+                              -float(10.f), float(10.f));
+
+        shader_program.setMat4("proj", proj);
+
+        float last_frame = -0.03f;
+
+        float moving_framerate_average = 0.f;
+
+        const float framerate_smoothing = .9f;
+
+        while (!glfwWindowShouldClose(window)) {
+                ProcessInput(window);
+
+                GLfloat time_val = (GLfloat)glfwGetTime();
+
+                UpdateFramerate(time_val, last_frame, moving_framerate_average,
+                                framerate_smoothing, window);
+
+                shader_program.setFloat("time", time_val);
+
+                renderer.Clear(glm::vec4(0.4, 0.7, 0.9, 1.0)); // sky blue
+
+                renderer.Draw(vao, shader_program, secondTriangleIB);
+
+                // end of rendering
+                glfwSwapBuffers(window);
+                glfwPollEvents();
+        }
+}
+
+int main() {
+        GLInit();
+        GLFWwindow *window = MakeWindow(SCR_WIDTH, SCR_HEIGHT, WINDOW_TITLE);
+
+        GLenum err = glewInit();
+        if (GLEW_OK != err) {
+                /* Problem: glewInit failed, something is seriously wrong. */
+                fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+        }
+
+        GLCheckError(glEnable(GL_BLEND));
+        GLCheckError(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+        GLCheckError(glBlendEquation(GL_FUNC_ADD));
+
+        step1(window);
 
         glfwTerminate();
         return 0;
