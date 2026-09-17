@@ -143,7 +143,7 @@ void step1(GLFWwindow *window) {
         layout.AddAttrib("position", 3, GL_FLOAT, false);
         vao.AddBuffer(vbo, layout);
 
-        IndexBuffer secondTriangleIB(indices, 3);
+        IndexBuffer triangleIB(indices, 3);
 
         Renderer renderer;
 
@@ -171,13 +171,68 @@ void step1(GLFWwindow *window) {
 
                 renderer.Clear(glm::vec4(0.4, 0.7, 0.9, 1.0)); // sky blue
 
-                renderer.Draw(vao, shader_program, secondTriangleIB);
+                renderer.Draw(vao, shader_program, triangleIB);
 
                 // end of rendering
                 glfwSwapBuffers(window);
                 glfwPollEvents();
         }
 }
+
+
+void step1a(GLFWwindow *window) {
+       Solid cube = Solid(glm::vec3(0.,0.,0.));
+       cube.MakeCuboid(.25,.25,.25);
+          
+        Shader shader_program =
+            Shader("../res/shaders/step1.vert", "../res/shaders/step1.frag");
+
+        VertexArray vao;
+        VertexBuffer vbo(cube.get_vertices(false).data(), 15 * sizeof(float));
+        //there might be some issue with pointers here
+
+        VertexBufferLayout layout;
+
+        layout.AddAttrib("position", 3, GL_FLOAT, false);
+        vao.AddBuffer(vbo, layout);
+
+        IndexBuffer triangleIB(cube.get_indices().data(), 3);
+
+        Renderer renderer;
+
+        glm::mat4 proj =
+            glm::ortho<float>(-float(1.), float(1.), -float(1.), float(1.),
+                              -float(10.f), float(10.f));
+
+        shader_program.setMat4("proj", proj);
+
+        float last_frame = -0.03f;
+
+        float moving_framerate_average = 0.f;
+
+        const float framerate_smoothing = .9f;
+
+        while (!glfwWindowShouldClose(window)) {
+                ProcessInput(window);
+
+                GLfloat time_val = (GLfloat)glfwGetTime();
+
+                UpdateFramerate(time_val, last_frame, moving_framerate_average,
+                                framerate_smoothing, window);
+
+                shader_program.setFloat("time", time_val);
+
+                renderer.Clear(glm::vec4(0.4, 0.7, 0.9, 1.0)); // sky blue
+
+                renderer.Draw(vao, shader_program, triangleIB);
+
+                // end of rendering
+                glfwSwapBuffers(window);
+                glfwPollEvents();
+        }
+}
+
+
 
 int main() {
         GLInit();
@@ -193,7 +248,7 @@ int main() {
         GLCheckError(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
         GLCheckError(glBlendEquation(GL_FUNC_ADD));
 
-        step1(window);
+        step1a(window);
 
         glfwTerminate();
         return 0;
