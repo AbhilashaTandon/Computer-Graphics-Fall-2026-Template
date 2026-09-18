@@ -187,8 +187,11 @@ void step1a(GLFWwindow *window) {
         Shader shader_program =
             Shader("../res/shaders/step1.vert", "../res/shaders/step1.frag");
 
+        std::vector<float> vertices = cube.get_vertices(false);
+        std::vector<unsigned int> indices = cube.get_indices();
+
         VertexArray vao;
-        VertexBuffer vbo(cube.get_vertices(false).data(), 15 * sizeof(float));
+        VertexBuffer vbo(vertices.data(), vertices.size() * sizeof(float));
         //there might be some issue with pointers here
 
         VertexBufferLayout layout;
@@ -196,13 +199,11 @@ void step1a(GLFWwindow *window) {
         layout.AddAttrib("position", 3, GL_FLOAT, false);
         vao.AddBuffer(vbo, layout);
 
-        IndexBuffer triangleIB(cube.get_indices().data(), 3);
+        IndexBuffer triangleIB(indices.data(), indices.size());
 
         Renderer renderer;
 
-        glm::mat4 proj =
-            glm::ortho<float>(-float(1.), float(1.), -float(1.), float(1.),
-                              -float(10.f), float(10.f));
+        glm::mat4 proj = glm::perspective<float>(30.f, float(SCR_WIDTH) / float(SCR_HEIGHT), .1, 100.f);
 
         shader_program.setMat4("proj", proj);
 
