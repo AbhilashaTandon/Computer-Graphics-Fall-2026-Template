@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vertex_buffer_layout.h"
 #include <glm/glm.hpp>
 #include <vector>
 
@@ -22,6 +23,7 @@ class Solid // all 3d object classes inherit this
 
         std::vector<float> get_vertices(bool use_normals) {
 
+
                 std::vector<float> vertices;
 
                 for (unsigned int i = 0; i < points.size(); i++) {
@@ -38,6 +40,8 @@ class Solid // all 3d object classes inherit this
 
                 return vertices;
         }
+
+        std::vector<float> get_vertices(VertexBufferLayout vbo);
 
         void rotate_x(float angle);
         void rotate_y(float angle);
@@ -62,6 +66,7 @@ class Solid // all 3d object classes inherit this
         std::vector<glm::vec3> points;
         std::vector<unsigned int> indices;
         std::vector<glm::vec3> normals;
+        
 
         glm::vec3 center; // should be roughly center of mass, its the point
                           // that things rotate and scale based on

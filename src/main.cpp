@@ -8,8 +8,10 @@
 #include "../include/vertex_array.h"
 #include "../include/vertex_buffer.h"
 #include <GLFW/glfw3.h>
+#include <glm/common.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_float4x4.hpp>
+#include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -126,9 +128,9 @@ void placeholder(GLFWwindow *window) {
 void step1(GLFWwindow *window) {
 
         float triangle[] = {
-            0.0f,  -0.5f, 0.0f, // left
-            0.9f,  -0.5f, 0.0f, // right
-            0.45f, 0.5f,  0.0f, // top
+            0.0f,  0.5f,  0.0f, // left
+            0.9f,  0.5f,  0.0f, // right
+            0.45f, -0.5f, 0.0f, // top
         };
         unsigned int indices[] = {0, 1, 2};
 
@@ -143,15 +145,9 @@ void step1(GLFWwindow *window) {
         layout.AddAttrib("position", 3, GL_FLOAT, false);
         vao.AddBuffer(vbo, layout);
 
-        IndexBuffer triangleIB(indices, 3);
+        // IndexBuffer triangleIB(indices, 3);
 
         Renderer renderer;
-
-        glm::mat4 proj =
-            glm::ortho<float>(-float(1.), float(1.), -float(1.), float(1.),
-                              -float(10.f), float(10.f));
-
-        shader_program.setMat4("proj", proj);
 
         float last_frame = -0.03f;
 
@@ -171,7 +167,11 @@ void step1(GLFWwindow *window) {
 
                 renderer.Clear(glm::vec4(0.4, 0.7, 0.9, 1.0)); // sky blue
 
-                renderer.Draw(vao, shader_program, triangleIB);
+                // renderer.Draw(vao, shader_program, triangleIB);
+                vao.Bind();
+                // ib.Bind();
+                shader_program.apply();
+                GLCheckError(glDrawArrays(GL_TRIANGLES, 0, 3));
 
                 // end of rendering
                 glfwSwapBuffers(window);
@@ -179,11 +179,10 @@ void step1(GLFWwindow *window) {
         }
 }
 
-
 void step1a(GLFWwindow *window) {
-       Solid cube = Solid(glm::vec3(0.,0.,0.));
-       cube.MakeCuboid(.25,.25,.25);
-          
+        Solid cube = Solid(glm::vec3(0., 0., 0.));
+        cube.MakeCuboid(.5, .5, .5);
+
         Shader shader_program =
             Shader("../res/shaders/step1.vert", "../res/shaders/step1.frag");
 
@@ -192,7 +191,7 @@ void step1a(GLFWwindow *window) {
 
         VertexArray vao;
         VertexBuffer vbo(vertices.data(), vertices.size() * sizeof(float));
-        //there might be some issue with pointers here
+        // there might be some issue with pointers here
 
         VertexBufferLayout layout;
 
@@ -203,9 +202,75 @@ void step1a(GLFWwindow *window) {
 
         Renderer renderer;
 
-        glm::mat4 proj = glm::perspective<float>(30.f, float(SCR_WIDTH) / float(SCR_HEIGHT), .1, 100.f);
+        float last_frame = -0.03f;
 
-        shader_program.setMat4("proj", proj);
+        float moving_framerate_average = 0.f;
+
+        const float framerate_smoothing = .9f;
+
+        while (!glfwWindowShouldClose(window)) {
+                ProcessInput(window);
+
+                GLfloat time_val = (GLfloat)glfwGetTime();
+
+                UpdateFramerate(time_val, last_frame, moving_framerate_average,
+                                framerate_smoothing, window);
+
+                shader_program.setFloat("time", time_val);
+
+                renderer.Clear(glm::vec4(0.4, 0.7, 0.9, 1.0)); // sky blue
+
+                renderer.Draw(vao, shader_program, triangleIB);
+
+                // end of rendering
+                glfwSwapBuffers(window);
+                glfwPollEvents();
+        }
+}
+
+void step2(GLFWwindow *window) {
+        Solid cube = Solid(glm::vec3(0., 0., 0.));
+        cube.MakeCuboid(.5, .5, .5);
+
+        Shader shader_program =
+            Shader("../res/shaders/step2.vert", "../res/shaders/step2.frag");
+
+        Texture t("../res/textures/wood.png");
+        t.Bind();
+
+        std::vector<float> vertices = cube.get_vertices(false);
+        std::vector<unsigned int> indices = cube.get_indices();
+        std::vector<float> vertex_buffer{};
+
+        std::array<int, 16> texcoords = {0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0};
+        
+        for (size_t i = 0; i < vertices.size(); i++) {
+                vertex_buffer.push_back(vertices[i]);
+                if (i % 3 != 2) {
+                        continue;
+                }
+
+                int index = i / 3;
+
+                vertex_buffer.push_back(float(texcoords[2 * index]));
+                vertex_buffer.push_back(float(texcoords[2 * index + 1]));
+        }
+        // something in this loop causes an invalid free
+
+        VertexArray vao;
+        VertexBuffer vbo(vertex_buffer.data(),
+                         vertex_buffer.size() * sizeof(float));
+        // there might be some issue with pointers here
+
+        VertexBufferLayout layout;
+
+        layout.AddAttrib("position", 3, GL_FLOAT, false);
+        layout.AddAttrib("textures", 2, GL_FLOAT, false);
+        vao.AddBuffer(vbo, layout);
+
+        IndexBuffer triangleIB(indices.data(), indices.size());
+
+        Renderer renderer;
 
         float last_frame = -0.03f;
 
@@ -234,6 +299,76 @@ void step1a(GLFWwindow *window) {
 }
 
 
+
+void step2(GLFWwindow *window) {
+        Solid cube = Solid(glm::vec3(0., 0., 0.));
+        cube.MakeCuboid(.5, .5, .5);
+
+        Shader shader_program =
+            Shader("../res/shaders/step2.vert", "../res/shaders/step2.frag");
+
+        Texture t("../res/textures/wood.png");
+        t.Bind();
+
+        std::vector<float> vertices = cube.get_vertices(false);
+        std::vector<unsigned int> indices = cube.get_indices();
+        std::vector<float> vertex_buffer{};
+
+        std::array<int, 16> texcoords = {0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0};
+        
+        for (size_t i = 0; i < vertices.size(); i++) {
+                vertex_buffer.push_back(vertices[i]);
+                if (i % 3 != 2) {
+                        continue;
+                }
+
+                int index = i / 3;
+
+                vertex_buffer.push_back(float(texcoords[2 * index]));
+                vertex_buffer.push_back(float(texcoords[2 * index + 1]));
+        }
+        // something in this loop causes an invalid free
+
+        VertexArray vao;
+        VertexBuffer vbo(vertex_buffer.data(),
+                         vertex_buffer.size() * sizeof(float));
+        // there might be some issue with pointers here
+
+        VertexBufferLayout layout;
+
+        layout.AddAttrib("position", 3, GL_FLOAT, false);
+        layout.AddAttrib("textures", 2, GL_FLOAT, false);
+        vao.AddBuffer(vbo, layout);
+
+        IndexBuffer triangleIB(indices.data(), indices.size());
+
+        Renderer renderer;
+
+        float last_frame = -0.03f;
+
+        float moving_framerate_average = 0.f;
+
+        const float framerate_smoothing = .9f;
+
+        while (!glfwWindowShouldClose(window)) {
+                ProcessInput(window);
+
+                GLfloat time_val = (GLfloat)glfwGetTime();
+
+                UpdateFramerate(time_val, last_frame, moving_framerate_average,
+                                framerate_smoothing, window);
+
+                shader_program.setFloat("time", time_val);
+
+                renderer.Clear(glm::vec4(0.4, 0.7, 0.9, 1.0)); // sky blue
+
+                renderer.Draw(vao, shader_program, triangleIB);
+
+                // end of rendering
+                glfwSwapBuffers(window);
+                glfwPollEvents();
+        }
+}
 
 int main() {
         GLInit();
@@ -249,7 +384,7 @@ int main() {
         GLCheckError(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
         GLCheckError(glBlendEquation(GL_FUNC_ADD));
 
-        step1a(window);
+        step2(window);
 
         glfwTerminate();
         return 0;
