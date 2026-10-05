@@ -242,8 +242,9 @@ void step2(GLFWwindow *window) {
         std::vector<unsigned int> indices = cube.get_indices();
         std::vector<float> vertex_buffer{};
 
-        std::array<int, 16> texcoords = {0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0};
-        
+        std::array<int, 16> texcoords = {0, 0, 0, 1, 1, 0, 1, 1,
+                                         1, 1, 1, 0, 0, 1, 0, 0};
+
         for (size_t i = 0; i < vertices.size(); i++) {
                 vertex_buffer.push_back(vertices[i]);
                 if (i % 3 != 2) {
@@ -298,14 +299,12 @@ void step2(GLFWwindow *window) {
         }
 }
 
-
-
-void step2(GLFWwindow *window) {
+void step3(GLFWwindow *window) {
         Solid cube = Solid(glm::vec3(0., 0., 0.));
         cube.MakeCuboid(.5, .5, .5);
 
         Shader shader_program =
-            Shader("../res/shaders/step2.vert", "../res/shaders/step2.frag");
+            Shader("../res/shaders/step3.vert", "../res/shaders/step3.frag");
 
         Texture t("../res/textures/wood.png");
         t.Bind();
@@ -314,8 +313,9 @@ void step2(GLFWwindow *window) {
         std::vector<unsigned int> indices = cube.get_indices();
         std::vector<float> vertex_buffer{};
 
-        std::array<int, 16> texcoords = {0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0};
-        
+        std::array<int, 16> texcoords = {0, 0, 0, 1, 1, 0, 1, 1,
+                                         1, 1, 1, 0, 0, 1, 0, 0};
+
         for (size_t i = 0; i < vertices.size(); i++) {
                 vertex_buffer.push_back(vertices[i]);
                 if (i % 3 != 2) {
@@ -344,6 +344,27 @@ void step2(GLFWwindow *window) {
 
         Renderer renderer;
 
+        // glm::mat4 proj = glm::perspective<float>(
+        //     30.f, float(SCR_WIDTH) / float(SCR_HEIGHT), .1, 100.f);
+
+        glm::mat4 proj = glm::perspective(
+            30.f, float(SCR_WIDTH) / float(SCR_HEIGHT), 0.1f, 100.f);
+        // glm::mat4 proj = glm::identity<glm::mat4>();
+        shader_program.setMat4("proj", proj);
+
+        // // glm::mat4 view = glm::lookAt(glm::vec3(-10., -10., -10.),
+        // glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+        glm::mat4 view = glm::lookAt(
+            glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f,
+                      0.0f)); // glm::mat4 view = glm::identity<glm::mat4>();
+        shader_program.setMat4("view", view);
+
+        for (int i = 0; i < 4; i++) {
+                std::cout << proj[i][0] << "\t" << proj[i][1] << "\t"
+                          << proj[i][2] << "\t" << proj[i][3] << "\n";
+        }
+
         float last_frame = -0.03f;
 
         float moving_framerate_average = 0.f;
@@ -354,6 +375,11 @@ void step2(GLFWwindow *window) {
                 ProcessInput(window);
 
                 GLfloat time_val = (GLfloat)glfwGetTime();
+
+                glm::mat4 model = glm::rotate(glm::identity<glm::mat4>(),
+                                              time_val, glm::vec3(.2, 1., 0.));
+                // glm::mat4 model = glm::identity<glm::mat4>();
+                shader_program.setMat4("model", model);
 
                 UpdateFramerate(time_val, last_frame, moving_framerate_average,
                                 framerate_smoothing, window);
@@ -380,11 +406,12 @@ int main() {
                 fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
         }
 
+        GLCheckError(glEnable(GL_DEPTH_TEST));
         GLCheckError(glEnable(GL_BLEND));
         GLCheckError(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
         GLCheckError(glBlendEquation(GL_FUNC_ADD));
 
-        step2(window);
+        step3(window);
 
         glfwTerminate();
         return 0;
