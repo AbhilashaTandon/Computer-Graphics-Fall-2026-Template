@@ -4,5 +4,7 @@
 glad
 glfw
 glm
+assimp
 notes.md
 res/models/bunny.tar.gz
+libs/

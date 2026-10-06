@@ -17,7 +17,7 @@ class Texture {
         inline int GetHeight() const { return height; }
         inline int GetNumBits() const { return num_bits; }
 
-      private:
+      
         unsigned int id;
         std::string file_path;
         unsigned char *local_buffer;

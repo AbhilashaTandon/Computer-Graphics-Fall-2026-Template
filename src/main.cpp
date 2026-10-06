@@ -14,6 +14,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "../include/model.h"
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -259,8 +260,7 @@ void step2(GLFWwindow *window) {
         // something in this loop causes an invalid free
 
         VertexArray vao;
-        VertexBuffer vbo(vertices.data(),
-                         vertices.size() * sizeof(float));
+        VertexBuffer vbo(vertices.data(), vertices.size() * sizeof(float));
         // there might be some issue with pointers here
 
         VertexBufferLayout layout;
@@ -330,8 +330,7 @@ void step3(GLFWwindow *window) {
         // something in this loop causes an invalid free
 
         VertexArray vao;
-        VertexBuffer vbo(vertices.data(),
-                         vertices.size() * sizeof(float));
+        VertexBuffer vbo(vertices.data(), vertices.size() * sizeof(float));
         // there might be some issue with pointers here
 
         VertexBufferLayout layout;
@@ -396,7 +395,6 @@ void step3(GLFWwindow *window) {
         }
 }
 
-
 void step4(GLFWwindow *window) {
         Solid cube = Solid(glm::vec3(0., 0., 0.));
         cube.MakeCuboidVertices(.5, .5, .5);
@@ -410,8 +408,7 @@ void step4(GLFWwindow *window) {
         std::vector<float> vertices = cube.get_vertices(true, true);
 
         VertexArray vao;
-        VertexBuffer vbo(vertices.data(),
-                         vertices.size() * sizeof(float));
+        VertexBuffer vbo(vertices.data(), vertices.size() * sizeof(float));
         // there might be some issue with pointers here
 
         VertexBufferLayout layout;
@@ -481,6 +478,62 @@ void step4(GLFWwindow *window) {
         }
 }
 
+
+void step5(GLFWwindow *window) {
+
+        Shader shader_program =
+            Shader("../res/shaders/step5.vert", "../res/shaders/step5.frag");
+
+        Model ourModel("../res/models/backpack.obj");
+
+        Renderer renderer;
+
+        glm::mat4 proj = glm::perspective(
+            30.f, float(SCR_WIDTH) / float(SCR_HEIGHT), 0.1f, 100.f);
+        shader_program.setMat4("proj", proj);
+
+        glm::mat4 view = glm::lookAt(
+            glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f,
+                      0.0f)); // glm::mat4 view = glm::identity<glm::mat4>();
+        shader_program.setMat4("view", view);
+
+
+        float last_frame = -0.03f;
+
+        float moving_framerate_average = 0.f;
+
+        const float framerate_smoothing = .9f;
+
+        glm::vec4 light_pos = glm::vec4(-.7, .9, -.5, .0);
+
+        shader_program.setVec4("light_pos", light_pos);
+
+        while (!glfwWindowShouldClose(window)) {
+                ProcessInput(window);
+
+                GLfloat time_val = (GLfloat)glfwGetTime();
+
+                glm::mat4 model = glm::rotate(glm::identity<glm::mat4>(),
+                                              time_val, glm::vec3(.2, 1., 0.));
+                shader_program.setMat4("model", model);
+
+                UpdateFramerate(time_val, last_frame, moving_framerate_average,
+                                framerate_smoothing, window);
+
+                shader_program.setFloat("time", time_val);
+
+                renderer.Clear(glm::vec4(0.4, 0.7, 0.9, 1.0)); // sky blue
+
+                ourModel.Draw(shader_program);
+
+                // end of rendering
+                glfwSwapBuffers(window);
+                glfwPollEvents();
+        }
+}
+
+
 int main() {
         GLInit();
         GLFWwindow *window = MakeWindow(SCR_WIDTH, SCR_HEIGHT, WINDOW_TITLE);
@@ -496,7 +549,7 @@ int main() {
         GLCheckError(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
         GLCheckError(glBlendEquation(GL_FUNC_ADD));
 
-        step4(window);
+        step5(window);
 
         glfwTerminate();
         return 0;

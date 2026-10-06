@@ -25,6 +25,9 @@ add_subdirectory( glfw )
 include_directories(include/external)
 include_directories(${GLFW_SOURCE_DIR}/src)
 
+
+add_subdirectory(assimp)
+include_directories(${PROJECT_SOURCE_DIR}/assimp/include)
 # option( GLFW-CMAKE-STARTER-USE-GLFW-GLAD "Use GLAD from GLFW" OFF )
 
 # if( GLFW-CMAKE-STARTER-USE-GLFW-GLAD )
@@ -56,6 +59,7 @@ file(GLOB all_SRCS
 add_executable( ${PROJECT_NAME} WIN32 ${all_SRCS} )
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra -Wpedantic -g -O0 -ggdb -fno-omit-frame-pointer -gcolumn-info)
+target_link_libraries(${PROJECT_NAME} ${PROJECT_SOURCE_DIR}/assimp/build/bin/libassimp.so)
 target_link_libraries( ${PROJECT_NAME} ${OPENGL_LIBRARIES} glfw GLEW::glew)
 if( MSVC )
     if(${CMAKE_VERSION} VERSION_LESS "3.6.0")
