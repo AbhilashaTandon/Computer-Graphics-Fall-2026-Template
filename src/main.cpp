@@ -1,5 +1,6 @@
 #include "../include/index_buffer.h"
 #include "../include/main.h"
+#include "../include/model.h"
 #include "../include/opengl_error.h"
 #include "../include/renderer.h"
 #include "../include/shader.h"
@@ -14,7 +15,6 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "../include/model.h"
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -133,7 +133,6 @@ void step1(GLFWwindow *window) {
             0.9f,  0.5f,  0.0f, // right
             0.45f, -0.5f, 0.0f, // top
         };
-        unsigned int indices[] = {0, 1, 2};
 
         Shader shader_program =
             Shader("../res/shaders/step1.vert", "../res/shaders/step1.frag");
@@ -478,7 +477,6 @@ void step4(GLFWwindow *window) {
         }
 }
 
-
 void step5(GLFWwindow *window) {
 
         Shader shader_program =
@@ -493,11 +491,10 @@ void step5(GLFWwindow *window) {
         shader_program.setMat4("proj", proj);
 
         glm::mat4 view = glm::lookAt(
-            glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(0.0f, 1.0f,
                       0.0f)); // glm::mat4 view = glm::identity<glm::mat4>();
         shader_program.setMat4("view", view);
-
 
         float last_frame = -0.03f;
 
@@ -505,9 +502,8 @@ void step5(GLFWwindow *window) {
 
         const float framerate_smoothing = .9f;
 
-        glm::vec4 light_pos = glm::vec4(-.7, .9, -.5, .0);
+        glm::vec4 light_pos = glm::normalize(glm::vec4(0.f, 1.1, .5, .0));
 
-        shader_program.setVec4("light_pos", light_pos);
 
         while (!glfwWindowShouldClose(window)) {
                 ProcessInput(window);
@@ -517,6 +513,7 @@ void step5(GLFWwindow *window) {
                 glm::mat4 model = glm::rotate(glm::identity<glm::mat4>(),
                                               time_val, glm::vec3(.2, 1., 0.));
                 shader_program.setMat4("model", model);
+        shader_program.setVec4("light_pos", light_pos * model);
 
                 UpdateFramerate(time_val, last_frame, moving_framerate_average,
                                 framerate_smoothing, window);
@@ -533,7 +530,6 @@ void step5(GLFWwindow *window) {
         }
 }
 
-
 int main() {
         GLInit();
         GLFWwindow *window = MakeWindow(SCR_WIDTH, SCR_HEIGHT, WINDOW_TITLE);
@@ -549,6 +545,7 @@ int main() {
         GLCheckError(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
         GLCheckError(glBlendEquation(GL_FUNC_ADD));
 
+        stbi_set_flip_vertically_on_load(true);
         step5(window);
 
         glfwTerminate();

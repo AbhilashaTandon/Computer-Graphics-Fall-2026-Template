@@ -6,14 +6,17 @@ layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aTexCoords;
 
 out vec2 TexCoords;
+out float diffuse;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
+uniform vec4 light_pos;
 
 void main()
 {
     TexCoords = aTexCoords;    
+    diffuse = dot(light_pos.xyz, aNormal);
     gl_Position = proj * view * model * vec4(aPos, 1.0);
 }
 
