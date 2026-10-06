@@ -1,17 +1,17 @@
 #include "../include/solid.h"
 
-void Solid::rotate_x(float angle) {
+// void Solid::rotate_x(float angle) {
 
-        // TODO:
-}
+//         // TODO:
+// }
 
-void Solid::rotate_y(float angle) {
-        // TODO:
-}
+// void Solid::rotate_y(float angle) {
+//         // TODO:
+// }
 
-void Solid::rotate_z(float angle) {
-        // TODO:
-}
+// void Solid::rotate_z(float angle) {
+//         // TODO:
+// }
 
 void Solid::scale(glm::vec3 size) {
         for (size_t i = 0; i < points.size(); i++) {
@@ -216,7 +216,7 @@ void Solid::MakeSurface(unsigned int num_tiles_width,
         }
 }
 
-void Solid::MakeCuboid(float height, float width, float depth) {
+void Solid::MakeCuboidIndices(float height, float width, float depth) {
         for (int i = -1; i < 2; i += 2) {
                 for (int j = -1; j < 2; j += 2) {
                         for (int k = -1; k < 2; k += 2) {
@@ -228,6 +228,9 @@ void Solid::MakeCuboid(float height, float width, float depth) {
                                     pos); // vertices, +-width +-height +-depth
 
                                 normals.push_back(glm::normalize(pos));
+
+                                tex_coords.push_back(
+                                    glm::vec2((i*j + 1) / 2.f, (i*k + 1) / 2.f));
                         }
                 }
         }
@@ -237,7 +240,7 @@ void Solid::MakeCuboid(float height, float width, float depth) {
 
             0, 1, 4, 1, 4, 5,
 
-            0, 2, 4, 0, 4, 6,
+            0, 2, 4, 2, 4, 6,
 
             4, 5, 6, 5, 6, 7,
 
@@ -249,6 +252,92 @@ void Solid::MakeCuboid(float height, float width, float depth) {
         for (unsigned int i = 0; i < 36; i++) {
                 indices.push_back(indices_arr[i]);
         }
+}
+
+void Solid::MakeCuboidVertices(float height, float width, float depth) {
+        points = {
+            // back and front faces
+            glm::vec3(height, width, depth) / 2.f - this->center,
+            glm::vec3(-height, width, depth) / 2.f - this->center,
+            glm::vec3(height, -width, depth) / 2.f - this->center,
+
+            glm::vec3(-height, width, depth) / 2.f - this->center,
+            glm::vec3(height, -width, depth) / 2.f - this->center,
+            glm::vec3(-height, -width, depth) / 2.f - this->center,
+
+            glm::vec3(height, width, -depth) / 2.f - this->center,
+            glm::vec3(-height, width, -depth) / 2.f - this->center,
+            glm::vec3(height, -width, -depth) / 2.f - this->center,
+
+            glm::vec3(-height, width, -depth) / 2.f - this->center,
+            glm::vec3(height, -width, -depth) / 2.f - this->center,
+            glm::vec3(-height, -width, -depth) / 2.f - this->center,
+
+            // top and bottom faces
+            glm::vec3(height, width, depth) / 2.f - this->center,
+            glm::vec3(height, width, -depth) / 2.f - this->center,
+            glm::vec3(height, -width, depth) / 2.f - this->center,
+
+            glm::vec3(height, -width, -depth) / 2.f - this->center,
+            glm::vec3(height, width, -depth) / 2.f - this->center,
+            glm::vec3(height, -width, depth) / 2.f - this->center,
+
+            glm::vec3(-height, width, depth) / 2.f - this->center,
+            glm::vec3(-height, width, -depth) / 2.f - this->center,
+            glm::vec3(-height, -width, depth) / 2.f - this->center,
+
+            glm::vec3(-height, -width, -depth) / 2.f - this->center,
+            glm::vec3(-height, width, -depth) / 2.f - this->center,
+            glm::vec3(-height, -width, depth) / 2.f - this->center,
+
+            // left and right faces
+            glm::vec3(height, width, depth) / 2.f - this->center,
+            glm::vec3(-height, width, depth) / 2.f - this->center,
+            glm::vec3(height, width, -depth) / 2.f - this->center,
+
+            glm::vec3(-height, width, -depth) / 2.f - this->center,
+            glm::vec3(-height, width, depth) / 2.f - this->center,
+            glm::vec3(height, width, -depth) / 2.f - this->center,
+
+            glm::vec3(height, -width, depth) / 2.f - this->center,
+            glm::vec3(-height, -width, depth) / 2.f - this->center,
+            glm::vec3(height, -width, -depth) / 2.f - this->center,
+
+            glm::vec3(-height, -width, -depth) / 2.f - this->center,
+            glm::vec3(-height, -width, depth) / 2.f - this->center,
+            glm::vec3(height, -width, -depth) / 2.f - this->center,
+        };
+
+        glm::vec3 normal_vectors[6] = {
+            glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, -1.0f),
+            glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f),
+        };
+
+        for (int i = 0; i < 36; i++) {
+                normals.push_back(normal_vectors[i / 6]);
+        }
+
+        tex_coords = {
+            glm::vec2(1.f, 1.f), glm::vec2(0.f, 1.f), glm::vec2(1.f, 0.f),
+            glm::vec2(0.f, 1.f), glm::vec2(1.f, 0.f), glm::vec2(0.f, 0.f),
+
+            glm::vec2(1.f, 1.f), glm::vec2(0.f, 1.f), glm::vec2(1.f, 0.f),
+            glm::vec2(0.f, 1.f), glm::vec2(1.f, 0.f), glm::vec2(0.f, 0.f),
+
+            glm::vec2(1.f, 1.f), glm::vec2(1.f, 0.f), glm::vec2(0.f, 1.f),
+            glm::vec2(0.f, 0.f), glm::vec2(1.f, 0.f), glm::vec2(0.f, 1.f),
+
+            glm::vec2(1.f, 1.f), glm::vec2(1.f, 0.f), glm::vec2(0.f, 1.f),
+            glm::vec2(0.f, 0.f), glm::vec2(1.f, 0.f), glm::vec2(0.f, 1.f),
+
+            glm::vec2(1.f, 1.f), glm::vec2(0.f, 1.f), glm::vec2(1.f, 0.f),
+            glm::vec2(0.f, 0.f), glm::vec2(0.f, 1.f), glm::vec2(1.f, 0.f),
+
+            glm::vec2(1.f, 1.f), glm::vec2(0.f, 1.f), glm::vec2(1.f, 0.f),
+            glm::vec2(0.f, 0.f), glm::vec2(0.f, 1.f), glm::vec2(1.f, 0.f),
+
+        };
 }
 
 Solid::Solid(Solid a, Solid b) {

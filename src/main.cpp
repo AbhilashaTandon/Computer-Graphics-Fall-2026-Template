@@ -24,7 +24,7 @@ void placeholder(GLFWwindow *window) {
         Solid sphere = Solid(glm::vec3(0., 0., 0.f));
         sphere.MakeSphere(.45, 10, 10);
 
-        std::vector<float> vertices = sphere.get_vertices(true);
+        std::vector<float> vertices = sphere.get_vertices(true, false);
         std::vector<unsigned int> indices = sphere.get_indices();
 
         // first triangle setup
@@ -116,8 +116,8 @@ void placeholder(GLFWwindow *window) {
 
                 renderer.Clear(glm::vec4(0.4, 0.7, 0.9, 1.0)); // sky blue
 
-                renderer.Draw(vao1, shader_program, sphereIB);
-                renderer.Draw(vao2, shader_program, secondTriangleIB);
+                renderer.DrawIndices(vao1, shader_program, sphereIB);
+                renderer.DrawIndices(vao2, shader_program, secondTriangleIB);
 
                 // end of rendering
                 glfwSwapBuffers(window);
@@ -181,12 +181,12 @@ void step1(GLFWwindow *window) {
 
 void step1a(GLFWwindow *window) {
         Solid cube = Solid(glm::vec3(0., 0., 0.));
-        cube.MakeCuboid(.5, .5, .5);
+        cube.MakeCuboidIndices(.5, .5, .5);
 
         Shader shader_program =
             Shader("../res/shaders/step1.vert", "../res/shaders/step1.frag");
 
-        std::vector<float> vertices = cube.get_vertices(false);
+        std::vector<float> vertices = cube.get_vertices(false, false);
         std::vector<unsigned int> indices = cube.get_indices();
 
         VertexArray vao;
@@ -220,7 +220,7 @@ void step1a(GLFWwindow *window) {
 
                 renderer.Clear(glm::vec4(0.4, 0.7, 0.9, 1.0)); // sky blue
 
-                renderer.Draw(vao, shader_program, triangleIB);
+                renderer.DrawIndices(vao, shader_program, triangleIB);
 
                 // end of rendering
                 glfwSwapBuffers(window);
@@ -230,7 +230,7 @@ void step1a(GLFWwindow *window) {
 
 void step2(GLFWwindow *window) {
         Solid cube = Solid(glm::vec3(0., 0., 0.));
-        cube.MakeCuboid(.5, .5, .5);
+        cube.MakeCuboidIndices(.5, .5, .5);
 
         Shader shader_program =
             Shader("../res/shaders/step2.vert", "../res/shaders/step2.frag");
@@ -238,29 +238,29 @@ void step2(GLFWwindow *window) {
         Texture t("../res/textures/wood.png");
         t.Bind();
 
-        std::vector<float> vertices = cube.get_vertices(false);
+        std::vector<float> vertices = cube.get_vertices(false, true);
         std::vector<unsigned int> indices = cube.get_indices();
         std::vector<float> vertex_buffer{};
 
-        std::array<int, 16> texcoords = {0, 0, 0, 1, 1, 0, 1, 1,
-                                         1, 1, 1, 0, 0, 1, 0, 0};
+        // std::array<int, 16> texcoords = {0, 0, 0, 1, 1, 0, 1, 1,
+        //                                  1, 1, 1, 0, 0, 1, 0, 0};
 
-        for (size_t i = 0; i < vertices.size(); i++) {
-                vertex_buffer.push_back(vertices[i]);
-                if (i % 3 != 2) {
-                        continue;
-                }
+        // for (size_t i = 0; i < vertices.size(); i++) {
+        //         vertex_buffer.push_back(vertices[i]);
+        //         if (i % 3 != 2) {
+        //                 continue;
+        //         }
 
-                int index = i / 3;
+        //         int index = i / 3;
 
-                vertex_buffer.push_back(float(texcoords[2 * index]));
-                vertex_buffer.push_back(float(texcoords[2 * index + 1]));
-        }
+        //         vertex_buffer.push_back(float(texcoords[2 * index]));
+        //         vertex_buffer.push_back(float(texcoords[2 * index + 1]));
+        // }
         // something in this loop causes an invalid free
 
         VertexArray vao;
-        VertexBuffer vbo(vertex_buffer.data(),
-                         vertex_buffer.size() * sizeof(float));
+        VertexBuffer vbo(vertices.data(),
+                         vertices.size() * sizeof(float));
         // there might be some issue with pointers here
 
         VertexBufferLayout layout;
@@ -291,7 +291,7 @@ void step2(GLFWwindow *window) {
 
                 renderer.Clear(glm::vec4(0.4, 0.7, 0.9, 1.0)); // sky blue
 
-                renderer.Draw(vao, shader_program, triangleIB);
+                renderer.DrawIndices(vao, shader_program, triangleIB);
 
                 // end of rendering
                 glfwSwapBuffers(window);
@@ -301,7 +301,7 @@ void step2(GLFWwindow *window) {
 
 void step3(GLFWwindow *window) {
         Solid cube = Solid(glm::vec3(0., 0., 0.));
-        cube.MakeCuboid(.5, .5, .5);
+        cube.MakeCuboidIndices(.5, .5, .5);
 
         Shader shader_program =
             Shader("../res/shaders/step3.vert", "../res/shaders/step3.frag");
@@ -309,29 +309,29 @@ void step3(GLFWwindow *window) {
         Texture t("../res/textures/wood.png");
         t.Bind();
 
-        std::vector<float> vertices = cube.get_vertices(false);
+        std::vector<float> vertices = cube.get_vertices(false, true);
         std::vector<unsigned int> indices = cube.get_indices();
         std::vector<float> vertex_buffer{};
 
-        std::array<int, 16> texcoords = {0, 0, 0, 1, 1, 0, 1, 1,
-                                         1, 1, 1, 0, 0, 1, 0, 0};
+        // std::array<int, 16> texcoords = {0, 0, 0, 1, 1, 0, 1, 1,
+        //                                  1, 1, 1, 0, 0, 1, 0, 0};
 
-        for (size_t i = 0; i < vertices.size(); i++) {
-                vertex_buffer.push_back(vertices[i]);
-                if (i % 3 != 2) {
-                        continue;
-                }
+        // for (size_t i = 0; i < vertices.size(); i++) {
+        //         vertex_buffer.push_back(vertices[i]);
+        //         if (i % 3 != 2) {
+        //                 continue;
+        //         }
 
-                int index = i / 3;
+        //         int index = i / 3;
 
-                vertex_buffer.push_back(float(texcoords[2 * index]));
-                vertex_buffer.push_back(float(texcoords[2 * index + 1]));
-        }
+        //         vertex_buffer.push_back(float(texcoords[2 * index]));
+        //         vertex_buffer.push_back(float(texcoords[2 * index + 1]));
+        // }
         // something in this loop causes an invalid free
 
         VertexArray vao;
-        VertexBuffer vbo(vertex_buffer.data(),
-                         vertex_buffer.size() * sizeof(float));
+        VertexBuffer vbo(vertices.data(),
+                         vertices.size() * sizeof(float));
         // there might be some issue with pointers here
 
         VertexBufferLayout layout;
@@ -388,7 +388,92 @@ void step3(GLFWwindow *window) {
 
                 renderer.Clear(glm::vec4(0.4, 0.7, 0.9, 1.0)); // sky blue
 
-                renderer.Draw(vao, shader_program, triangleIB);
+                renderer.DrawIndices(vao, shader_program, triangleIB);
+
+                // end of rendering
+                glfwSwapBuffers(window);
+                glfwPollEvents();
+        }
+}
+
+
+void step4(GLFWwindow *window) {
+        Solid cube = Solid(glm::vec3(0., 0., 0.));
+        cube.MakeCuboidVertices(.5, .5, .5);
+
+        Shader shader_program =
+            Shader("../res/shaders/step4.vert", "../res/shaders/step4.frag");
+
+        Texture t("../res/textures/wood.png");
+        t.Bind();
+
+        std::vector<float> vertices = cube.get_vertices(true, true);
+
+        VertexArray vao;
+        VertexBuffer vbo(vertices.data(),
+                         vertices.size() * sizeof(float));
+        // there might be some issue with pointers here
+
+        VertexBufferLayout layout;
+
+        layout.AddAttrib("position", 3, GL_FLOAT, false);
+        layout.AddAttrib("normals", 3, GL_FLOAT, false);
+        layout.AddAttrib("textures", 2, GL_FLOAT, false);
+        vao.AddBuffer(vbo, layout);
+
+        // IndexBuffer triangleIB(indices.data(), indices.size());
+
+        Renderer renderer;
+
+        // glm::mat4 proj = glm::perspective<float>(
+        //     30.f, float(SCR_WIDTH) / float(SCR_HEIGHT), .1, 100.f);
+
+        glm::mat4 proj = glm::perspective(
+            30.f, float(SCR_WIDTH) / float(SCR_HEIGHT), 0.1f, 100.f);
+        // glm::mat4 proj = glm::identity<glm::mat4>();
+        shader_program.setMat4("proj", proj);
+
+        // // glm::mat4 view = glm::lookAt(glm::vec3(-10., -10., -10.),
+        // glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+        glm::mat4 view = glm::lookAt(
+            glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f,
+                      0.0f)); // glm::mat4 view = glm::identity<glm::mat4>();
+        shader_program.setMat4("view", view);
+
+        for (int i = 0; i < 4; i++) {
+                std::cout << proj[i][0] << "\t" << proj[i][1] << "\t"
+                          << proj[i][2] << "\t" << proj[i][3] << "\n";
+        }
+
+        float last_frame = -0.03f;
+
+        float moving_framerate_average = 0.f;
+
+        const float framerate_smoothing = .9f;
+
+        glm::vec4 light_pos = glm::vec4(-.7, .9, -.5, .0);
+
+        shader_program.setVec4("light_pos", light_pos);
+
+        while (!glfwWindowShouldClose(window)) {
+                ProcessInput(window);
+
+                GLfloat time_val = (GLfloat)glfwGetTime();
+
+                glm::mat4 model = glm::rotate(glm::identity<glm::mat4>(),
+                                              time_val, glm::vec3(.2, 1., 0.));
+                // glm::mat4 model = glm::identity<glm::mat4>();
+                shader_program.setMat4("model", model);
+
+                UpdateFramerate(time_val, last_frame, moving_framerate_average,
+                                framerate_smoothing, window);
+
+                shader_program.setFloat("time", time_val);
+
+                renderer.Clear(glm::vec4(0.4, 0.7, 0.9, 1.0)); // sky blue
+
+                renderer.DrawVertices(vao, shader_program, vertices.size() / 3);
 
                 // end of rendering
                 glfwSwapBuffers(window);
@@ -411,7 +496,7 @@ int main() {
         GLCheckError(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
         GLCheckError(glBlendEquation(GL_FUNC_ADD));
 
-        step3(window);
+        step4(window);
 
         glfwTerminate();
         return 0;

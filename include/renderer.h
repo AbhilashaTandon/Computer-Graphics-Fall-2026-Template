@@ -10,8 +10,10 @@
 class Renderer {
       public:
         void Clear(glm::vec4 color) const;
-        void Draw(const VertexArray &va, const Shader &shader,
+        void DrawIndices(const VertexArray &va, const Shader &shader,
                   const IndexBuffer &ib) const;
+
+        void DrawVertices(const VertexArray &va, const Shader &shader, GLsizei num_triangles) const;
 };
 
 #endif

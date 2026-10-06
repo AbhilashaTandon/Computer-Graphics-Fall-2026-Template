@@ -21,9 +21,7 @@ class Solid // all 3d object classes inherit this
         std::vector<unsigned int> get_indices() { return indices; }
         std::vector<glm::vec3> get_normals() { return normals; }
 
-        std::vector<float> get_vertices(bool use_normals) {
-
-
+        std::vector<float> get_vertices(bool use_normals, bool use_text_coords) {
                 std::vector<float> vertices;
 
                 for (unsigned int i = 0; i < points.size(); i++) {
@@ -35,6 +33,11 @@ class Solid // all 3d object classes inherit this
                                 vertices.push_back(normals[i].x);
                                 vertices.push_back(normals[i].y);
                                 vertices.push_back(normals[i].z);
+                        }
+
+                        if(use_text_coords){
+                                vertices.push_back(tex_coords[i].x);
+                                vertices.push_back(tex_coords[i].y);
                         }
                 }
 
@@ -58,7 +61,8 @@ class Solid // all 3d object classes inherit this
                          unsigned int num_tiles_depth, float width,
                          float depth);
 
-        void MakeCuboid(float height, float width, float depth);
+        void MakeCuboidVertices(float height, float width, float depth);
+        void MakeCuboidIndices(float height, float width, float depth);
 
         Solid(Solid a, Solid b);
 
@@ -66,7 +70,8 @@ class Solid // all 3d object classes inherit this
         std::vector<glm::vec3> points;
         std::vector<unsigned int> indices;
         std::vector<glm::vec3> normals;
-        
+
+        std::vector<glm::vec2> tex_coords;
 
         glm::vec3 center; // should be roughly center of mass, its the point
                           // that things rotate and scale based on
