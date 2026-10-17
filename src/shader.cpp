@@ -1,19 +1,22 @@
 #include "../include/opengl_error.h"
 #include "../include/shader.h"
 
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include "../include/util.h"
 
 void bind_shader(const char *file_path, unsigned int shader_id) {
         // this function is only run by the constructor to load the shaders from
         // the file path args
         std::ifstream file;
 
-        file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        // file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
         // so exceptions will be thrown
         file.open(file_path);
+        report_file_error(file_path, file);
 
         std::string code((std::istreambuf_iterator<char>(file)),
                          (std::istreambuf_iterator<char>()));
@@ -25,6 +28,8 @@ void bind_shader(const char *file_path, unsigned int shader_id) {
         GLCheckError(glCompileShader(shader_id));
 
         shader_compilation_error(shader_id);
+
+        file.close();
 }
 
 void shader_compilation_error(unsigned int shader_id) {

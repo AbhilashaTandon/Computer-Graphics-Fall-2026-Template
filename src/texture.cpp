@@ -10,7 +10,12 @@ Texture::Texture(const std::string file_path)
         // need to flip it
         local_buffer =
             stbi_load(file_path.c_str(), &width, &height, &num_bits, 4);
-        assert(local_buffer != nullptr);
+
+        if (local_buffer == nullptr) {
+                std::cerr << "Error opening file: \"" << file_path << "\"\n";
+                assert(false);
+        }
+
         GLCheckError(glGenTextures(1, &id));
         GLCheckError(glBindTexture(GL_TEXTURE_2D, id));
 
