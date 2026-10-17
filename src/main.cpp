@@ -73,20 +73,6 @@ void placeholder(GLFWwindow *window) {
         // Rendering
         // ---------
 
-        // for (size_t i = 0; i < vertices.size(); i++) {
-        //         std::cout << proj[i % 3][i % 3] * vertices[i] << '\t';
-        //         if(i % 3 == 2){
-        //                 std::cout << '\n';
-        //         }
-        // }
-        //
-        // for (int i = 0; i < 16; i++) {
-        //         std::cout << proj[i / 4][i % 4] << '\t';
-        //         if (i % 4 == 3) {
-        //                 std::cout << '\n';
-        //         }
-        // }
-
         Renderer renderer;
 
         Texture texture("../res/textures/wood.png");
@@ -125,7 +111,6 @@ void placeholder(GLFWwindow *window) {
                 glfwPollEvents();
         }
 }
-
 
 int main() {
         GLInit();
