@@ -1,11 +1,12 @@
+#include "../include/compute_shader.h"
 #include "../include/index_buffer.h"
-#include "../include/main.h"
 #include "../include/model.h"
 #include "../include/opengl_error.h"
 #include "../include/renderer.h"
 #include "../include/shader.h"
 #include "../include/solid.h"
 #include "../include/texture.h"
+#include "../include/util.h"
 #include "../include/vertex_array.h"
 #include "../include/vertex_buffer.h"
 #include <GLFW/glfw3.h>
@@ -19,6 +20,41 @@
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 const std::string WINDOW_TITLE = "OpenGL";
+
+// timing
+float deltaTime = 0.0f; // time between current frame and last frame
+float lastFrame = 0.0f; // time of last frame
+
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+
+void renderQuad() {
+        if (quadVAO == 0) {
+                float quadVertices[] = {
+                    // positions        // texture Coords
+                    -1.0f, 1.0f, 0.0f,  0.0f, 1.0f, -1.0f, -1.0f,
+                    0.0f,  0.0f, 0.0f,  1.0f, 1.0f, 0.0f,  1.0f,
+                    1.0f,  1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+                };
+                // setup plane VAO
+                glGenVertexArrays(1, &quadVAO);
+                glGenBuffers(1, &quadVBO);
+                glBindVertexArray(quadVAO);
+                glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+                glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices),
+                             &quadVertices, GL_STATIC_DRAW);
+                glEnableVertexAttribArray(0);
+                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
+                                      5 * sizeof(float), (void *)0);
+                glEnableVertexAttribArray(1);
+                glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE,
+                                      5 * sizeof(float),
+                                      (void *)(3 * sizeof(float)));
+        }
+        glBindVertexArray(quadVAO);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glBindVertexArray(0);
+}
 
 void placeholder(GLFWwindow *window) {
 
@@ -112,6 +148,27 @@ void placeholder(GLFWwindow *window) {
         }
 }
 
+void create_image_texture(
+    const unsigned int texture_width,
+    const unsigned int
+        texture_height) { // creates an image for the compute shader to write to
+
+        unsigned int texture;
+
+        glGenTextures(1, &texture);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, texture_width,
+                     texture_height, 0, GL_RGBA, GL_FLOAT, NULL);
+
+        glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_READ_ONLY,
+                           GL_RGBA32F);
+}
+
 int main() {
         GLInit();
         GLFWwindow *window = MakeWindow(SCR_WIDTH, SCR_HEIGHT, WINDOW_TITLE);
@@ -128,8 +185,54 @@ int main() {
         GLCheckError(glBlendEquation(GL_FUNC_ADD));
 
         stbi_set_flip_vertically_on_load(true);
-        placeholder(window);
 
-        glfwTerminate();
+        // show_compute_shader_info();
+
+        const unsigned int texture_width = 512;
+        const unsigned int texture_height = 512;
+
+        create_image_texture(texture_width, texture_height);
+
+        Shader quad_shader =
+            Shader("../res/shaders/shader.vert", "../res/shaders/shader.frag");
+
+        quad_shader.setInt("tex", 0);
+
+        ComputeShader compute_shader =
+            ComputeShader("../res/shaders/shader.comp");
+
+        int fCounter = 0;
+        while (!glfwWindowShouldClose(window)) {
+                // Set frame time
+                float currentFrame = glfwGetTime();
+                deltaTime = currentFrame - lastFrame;
+                lastFrame = currentFrame;
+                if (fCounter > 500) {
+                        std::cout << "FPS: " << 1 / deltaTime << std::endl;
+                        fCounter = 0;
+                } else {
+                        fCounter++;
+                }
+
+                compute_shader.apply();
+                compute_shader.setFloat("t", currentFrame);
+                glDispatchCompute((unsigned int)texture_width ,
+                                  (unsigned int)texture_height, 1);
+
+                // make sure writing to image has finished before read
+                glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+                // render image to quad
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                quad_shader.apply();
+
+                renderQuad();
+
+                // glfw: swap buffers and poll IO events (keys pressed/released,
+                // mouse moved etc.)
+                // -------------------------------------------------------------------------------
+                glfwSwapBuffers(window);
+                glfwPollEvents();
+        }
         return 0;
 }

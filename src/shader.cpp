@@ -1,12 +1,12 @@
 #include "../include/opengl_error.h"
 #include "../include/shader.h"
 
+#include "../include/util.h"
 #include <cstring>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <string>
-#include "../include/util.h"
 
 void bind_shader(const char *file_path, unsigned int shader_id) {
         // this function is only run by the constructor to load the shaders from
